@@ -1221,6 +1221,7 @@ angular.module('ui.bootstrap.dateparser', [])
       if (angular.isDate(baseDate) && !isNaN(baseDate.getTime())) {
         fields = {
           year: baseDate.getFullYear(),
+          quarter: baseDate.getMonth(),
           month: baseDate.getMonth(),
           date: baseDate.getDate(),
           hours: baseDate.getHours(),
@@ -1232,7 +1233,7 @@ angular.module('ui.bootstrap.dateparser', [])
         if (baseDate) {
           $log.warn('dateparser:', 'baseDate is not a valid date');
         }
-        fields = { year: 1900, month: 0, date: 1, hours: 0, minutes: 0, seconds: 0, milliseconds: 0 };
+        fields = { year: 1900, quarter: 1, month: 0, date: 1, hours: 0, minutes: 0, seconds: 0, milliseconds: 0 };
       }
 
       for (var i = 1, n = results.length; i < n; i++) {
@@ -1271,7 +1272,7 @@ angular.module('ui.bootstrap.dateparser', [])
 
   // Check if date is valid for specific month (and year for February).
   // Month: 0 = Jan, 1 = Feb, etc
-  function isValid(year, month, date) {
+  function isValid(year, quarter, month, date) {
     if (date < 1) {
       return false;
     }
@@ -1433,6 +1434,7 @@ angular.module('ui.bootstrap.datepicker', ['ui.bootstrap.dateparser', 'ui.bootst
   datepickerMode: 'day',
   formatDay: 'dd',
   formatMonth: 'MMMM',
+  formatQuarter: 'q',
   formatYear: 'yyyy',
   formatDayHeader: 'EEE',
   formatDayTitle: 'MMMM yyyy',
@@ -1464,7 +1466,7 @@ angular.module('ui.bootstrap.datepicker', ['ui.bootstrap.dateparser', 'ui.bootst
   }
 
   // Modes chain
-  this.modes = ['day', 'month', 'year'];
+  this.modes = ['day', 'month', 'quarter', 'year'];
 
   [
     'customClass',
@@ -1474,6 +1476,7 @@ angular.module('ui.bootstrap.datepicker', ['ui.bootstrap.dateparser', 'ui.bootst
     'formatDayHeader',
     'formatDayTitle',
     'formatMonth',
+    'formatQuarter',
     'formatMonthTitle',
     'formatYear',
     'maxDate',
@@ -1500,6 +1503,7 @@ angular.module('ui.bootstrap.datepicker', ['ui.bootstrap.dateparser', 'ui.bootst
       case 'formatDayHeader':
       case 'formatDayTitle':
       case 'formatMonth':
+      case 'formatQuarter':
       case 'formatMonthTitle':
       case 'formatYear':
         self[key] = angular.isDefined($scope.datepickerOptions[key]) ?

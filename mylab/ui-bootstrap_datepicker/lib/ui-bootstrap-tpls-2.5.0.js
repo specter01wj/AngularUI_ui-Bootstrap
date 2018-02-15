@@ -1439,6 +1439,7 @@ angular.module('ui.bootstrap.datepicker', ['ui.bootstrap.dateparser', 'ui.bootst
   formatDayHeader: 'EEE',
   formatDayTitle: 'MMMM yyyy',
   formatMonthTitle: 'yyyy',
+  formatQuarterTitle: 'qqqq',
   maxDate: null,
   maxMode: 'year',
   minDate: null,
@@ -1478,6 +1479,7 @@ angular.module('ui.bootstrap.datepicker', ['ui.bootstrap.dateparser', 'ui.bootst
     'formatMonth',
     'formatQuarter',
     'formatMonthTitle',
+    'formatQuarterTitle',
     'formatYear',
     'maxDate',
     'maxMode',
@@ -1505,6 +1507,7 @@ angular.module('ui.bootstrap.datepicker', ['ui.bootstrap.dateparser', 'ui.bootst
       case 'formatMonth':
       case 'formatQuarter':
       case 'formatMonthTitle':
+      case 'formatQuarterTitle':
       case 'formatYear':
         self[key] = angular.isDefined($scope.datepickerOptions[key]) ?
           $interpolate($scope.datepickerOptions[key])($scope.$parent) :
@@ -1949,8 +1952,66 @@ angular.module('ui.bootstrap.datepicker', ['ui.bootstrap.dateparser', 'ui.bootst
       });
     }
 
-    scope.title = dateFilter(this.activeDate, this.formatMonthTitle);
+    scope.title = dateFilter(this.activeDate, this.formatQuarterTitle);
     scope.rows = this.split(months, this.monthColumns);
+    scope.yearHeaderColspan = this.monthColumns > 3 ? this.monthColumns - 2 : 1;
+  };
+
+  this.compare = function(date1, date2) {
+    var _date1 = new Date(date1.getFullYear(), date1.getMonth());
+    var _date2 = new Date(date2.getFullYear(), date2.getMonth());
+    _date1.setFullYear(date1.getFullYear());
+    _date2.setFullYear(date2.getFullYear());
+    return _date1 - _date2;
+  };
+
+  this.handleKeyDown = function(key, evt) {
+    var date = this.activeDate.getMonth();
+
+    if (key === 'left') {
+      date = date - 1;
+    } else if (key === 'up') {
+      date = date - this.monthColumns;
+    } else if (key === 'right') {
+      date = date + 1;
+    } else if (key === 'down') {
+      date = date + this.monthColumns;
+    } else if (key === 'pageup' || key === 'pagedown') {
+      var year = this.activeDate.getFullYear() + (key === 'pageup' ? - 1 : 1);
+      this.activeDate.setFullYear(year);
+    } else if (key === 'home') {
+      date = 0;
+    } else if (key === 'end') {
+      date = 11;
+    }
+    this.activeDate.setMonth(date);
+  };
+}])
+
+.controller('UibQuarterpickerController', ['$scope', '$element', 'dateFilter', function(scope, $element, dateFilter) {
+  this.step = { years: 1 };
+  this.element = $element;
+
+  this.init = function(ctrl) {
+    angular.extend(ctrl, this);
+    ctrl.refreshView();
+  };
+
+  this._refreshView = function() {
+    var quarter = new Array(4),
+        year = this.activeDate.getFullYear(),
+        date;
+
+    for (var i = 0; i < 4; i++) {
+      date = new Date(this.activeDate);
+      date.setFullYear(year, i, 1);
+      quarter[i] = angular.extend(this.createDateObject(date, this.formatQuarter), {
+        uid: scope.uniqueId + '-' + i
+      });
+    }
+
+    scope.title = dateFilter(this.activeDate, this.formatMonthTitle);
+    scope.rows = this.split(quarter, this.monthColumns);
     scope.yearHeaderColspan = this.monthColumns > 3 ? this.monthColumns - 2 : 1;
   };
 
@@ -2091,6 +2152,23 @@ angular.module('ui.bootstrap.datepicker', ['ui.bootstrap.dateparser', 'ui.bootst
         monthpickerCtrl = ctrls[1];
 
       monthpickerCtrl.init(datepickerCtrl);
+    }
+  };
+})
+
+.directive('uibQuarterpicker', function() {
+  return {
+    templateUrl: function(element, attrs) {
+      return attrs.templateUrl || 'uib/template/datepicker/quarter.html';
+    },
+    require: ['^uibDatepicker', 'uibQuarterpicker'],
+    restrict: 'A',
+    controller: 'UibQuarterpickerController',
+    link: function(scope, element, attrs, ctrls) {
+      var datepickerCtrl = ctrls[0],
+        quarterpickerCtrl = ctrls[1];
+
+      quarterpickerCtrl.init(datepickerCtrl);
     }
   };
 })
